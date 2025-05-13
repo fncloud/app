@@ -17,8 +17,8 @@ export default {
 		const ads = env.ADS || 'google.com, pub-9350003957494520, DIRECT, f08c47fec0942fa0';
 		const 网站图标 = env.ICO || 'https://yunpan.flw8.top/PicGo/fnyun';
 		const 网站头像 = env.PNG || 'https://yunpan.flw8.top/PicGo/fnyun';
-		const 网页标题 = env.TITLE || 'Fn Cloud蜂鸟云账号商场';
-		const 站点名称 = env.NAME || 'Fn Cloud蜂鸟云商场 - 智能访问';
+		const 网页标题 = env.TITLE || 'Fn Cloud蜂鸟云技术 智能访问';
+		const 站点名称 = env.NAME || 'Fn Cloud蜂鸟云技术平台 - 智能访问';
 		if (url.pathname.toLowerCase() == '/ads.txt') {
 			return new Response(ads, {
 				headers: {
@@ -27,13 +27,39 @@ export default {
 			});
 		} else if (url.pathname.toLowerCase() == '/favicon.ico') {
 			return fetch(网站图标);
-		} else {
-			// 先测速，不加载背景图片
-			let img = 'https://raw.cmliussss.com/keqing1080p.jpg'; // 默认图片
+		} else if (url.pathname.toLowerCase() == '/bgimg') {
+			// 代理图片请求，解决跨域/防盗链问题
+			let bgImgs = [
+				'https://raw.cmliussss.com/keqing1080p.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c2315.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c22bc.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c2337.jpg'
+			];
 			if (env.IMG) {
-				const imgs = await ADD(env.IMG);
-				img = imgs[Math.floor(Math.random() * imgs.length)];
+				bgImgs = await ADD(env.IMG);
 			}
+			const i = parseInt(url.searchParams.get('i') || '0', 10);
+			const imgUrl = bgImgs[i % bgImgs.length];
+			return fetch(imgUrl, {
+				headers: {
+					// 可根据需要伪造 Referer 或 User-Agent
+				}
+			});
+		} else {
+			// ✅ 本地随机背景图数组
+			let bgImgs = [
+				'https://raw.cmliussss.com/keqing1080p.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c2315.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c22bc.jpg',
+				'https://pic.imgdb.cn/item/66f6c978f21886ccc06c2337.jpg'
+			];
+			if (env.IMG) {
+				bgImgs = await ADD(env.IMG);
+			}
+			const imgIndex = Math.floor(Math.random() * bgImgs.length);
+			const img = bgImgs[imgIndex];
+
+
 
 			// 生成将 urls 数组传递给前端 JavaScript 的 HTML
 			const html = `
@@ -54,7 +80,7 @@ export default {
 						font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 						margin: 0;
 						padding: 0;
-						background-image: url('${img}');
+						background-image: url('/bgimg?i=${imgIndex}');
 						background-size: cover;
 						background-position: center;
 						background-attachment: fixed;
